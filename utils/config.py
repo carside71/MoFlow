@@ -26,10 +26,15 @@ class Config:
             self.yml_dict = yml_dict_
         self.ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    def create_dirs(self, tag_suffix=None):
+    def create_dirs(self, tag_suffix=None, output_dir=None):
         # results dirs
         tag = self.tag if tag_suffix is None else self.tag + tag_suffix
-        if self.train_mode:
+        if output_dir is not None:
+            if self.train_mode:
+                self.cfg_dir = '%s/%s/%s' % (os.path.abspath(output_dir), self.cfg_name, tag)
+            else:
+                self.cfg_dir = os.path.abspath(output_dir)
+        elif self.train_mode:
             self.cfg_dir = '%s/%s/%s' % (self.results_root_dir, self.cfg_name, tag)
         else:
             self.cfg_dir = os.path.dirname(self.cfg_path)

@@ -31,6 +31,7 @@ def parse_config():
     parser.add_argument('--eval', default=False, action='store_true', help='Evaluate the model using the ckpt, default is to train the IMLE model.')
     parser.add_argument('--eval_on_train', default=False, action='store_true', help='Evaluate the model on the training set.')
     parser.add_argument('--save_samples', default=False, action='store_true', help='Save the samples during evaluation.')
+    parser.add_argument('--output_dir', type=str, default=None, help='Override output root directory (default: results_root_dir in config).')
 
     # Data configuration
     parser.add_argument('--data_source', type=str, default='original', choices=['original', 'LED'], help='Data source for the training data.')
@@ -194,7 +195,7 @@ def init_basics(args):
     ### voila, create the saving directory ###
     tag = tag.replace('__', '_')
     cfg.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    logger = cfg.create_dirs(tag_suffix=tag)
+    logger = cfg.create_dirs(tag_suffix=tag, output_dir=args.output_dir)
 
 
     """fix random seed"""
@@ -207,7 +208,7 @@ def init_basics(args):
     os.makedirs(tb_dir, exist_ok=True)
     tb_log = SummaryWriter(log_dir=tb_dir)
 
-        
+
     """back up the code"""
     back_up_code_git(cfg, logger=logger)
     

@@ -25,6 +25,7 @@ def parse_config():
     # Basic configuration
     parser.add_argument('--cfg', default='cfg/sdd/cor_fm.yml', type=str, help="Config file path")
     parser.add_argument('--exp', default='', type=str, help='Experiment description for each run, name of the saving folder.')
+    parser.add_argument('--output_dir', type=str, default=None, help='Override output root directory (default: results_root_dir in config).')
 
     # Data configuration
     parser.add_argument('--epochs', default=None, type=int, help='Override the number of epochs in the config file.')
@@ -259,7 +260,7 @@ def init_basics(args):
     ### voila, create the saving directory ###
     tag = tag.replace('__', '_')
     cfg.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    logger = cfg.create_dirs(tag_suffix=tag)
+    logger = cfg.create_dirs(tag_suffix=tag, output_dir=args.output_dir)
 
 
     """fix random seed"""
@@ -272,10 +273,10 @@ def init_basics(args):
     os.makedirs(tb_dir, exist_ok=True)
     tb_log = SummaryWriter(log_dir=tb_dir)
 
-        
+
     """back up the code"""
     back_up_code_git(cfg, logger=logger)
-    
+
     """print the config file"""
     log_config_to_file(cfg.yml_dict, logger=logger)
     return cfg, logger, tb_log

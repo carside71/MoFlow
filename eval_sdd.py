@@ -28,6 +28,7 @@ def parse_config():
 	parser.add_argument('--ckpt_path', type=str, default=None, help='Path to the checkpoint to load the model from.')
 	parser.add_argument('--cfg', default='auto', type=str, help="Config file path")
 	parser.add_argument('--exp', default='', type=str, help='Experiment description for each run, name of the saving folder.')
+	parser.add_argument('--output_dir', type=str, default=None, help='Override output directory (default: checkpoint directory).')
 	parser.add_argument('--save_samples', default=False, action='store_true', help='Save the samples during evaluation.')
 	parser.add_argument('--eval_on_train', default=False, action='store_true', help='Evaluate the model on the training set.')
 
@@ -118,7 +119,7 @@ def init_basics(args):
 	tag += '_train_set' if args.eval_on_train else '_test_set'
 	tag = tag.replace('__', '_')
 	cfg.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-	logger = cfg.create_dirs(tag_suffix=tag)
+	logger = cfg.create_dirs(tag_suffix=tag, output_dir=args.output_dir)
 
 
 	"""fix random seed"""
