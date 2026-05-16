@@ -201,3 +201,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Additional ignores for this project
+run_container.sh
