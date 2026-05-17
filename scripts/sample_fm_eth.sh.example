@@ -1,0 +1,62 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage:
+#   bash sample_fm_eth.sh                                        # default settings
+#   bash sample_fm_eth.sh --subset hotel --ckpt_path /path/to/ckpt.p
+#   bash sample_fm_eth.sh --output_dir /tmp/out --eval_on_train false
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+OUTPUT_DIR=/workspace/outputs/cor_fm/exp_01_FM_S10_log_m-0.5_s1.5_dire_drop_emb_m0.5_k20.0_IS_TN_NN_A_REG_S_eth_rot_6_min_max_LR0.0001_WD0.01_CLS_1.0_BS32_EP150
+DATA_DIR=/workspace/datasets/trajectory_pred/eth_ucy
+CKPT_PATH=/workspace/outputs/cor_fm/exp_01_FM_S10_log_m-0.5_s1.5_dire_drop_emb_m0.5_k20.0_IS_TN_NN_A_REG_S_eth_rot_6_min_max_LR0.0001_WD0.01_CLS_1.0_BS32_EP150/models/checkpoint_best.pt
+
+# ── Experiment ───────────────────────────────────────────────────────────────
+EXP=exp_01
+SUBSET=eth
+
+# ── Sampling ─────────────────────────────────────────────────────────────────
+BATCH_SIZE=1000
+SAMPLING_STEPS=100
+SOLVER=lin_poly
+LIN_POLY_P=5
+LIN_POLY_LONG_STEP=1000
+
+# ── Output ───────────────────────────────────────────────────────────────────
+SAVE_SAMPLES=true
+EVAL_ON_TRAIN=true
+
+# ── Model ────────────────────────────────────────────────────────────────────
+ROTATE=true
+ROTATE_TIME_FRAME=6
+
+# ── Parse overrides (--KEY value) ────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+    key="${1^^}"
+    key="${key//-/_}"
+    key="${key#_}"
+    printf -v "$key" '%s' "$2"
+    shift 2
+done
+
+# ─────────────────────────────────────────────────────────────────────────────
+[[ -z "$CKPT_PATH" ]] && { echo "ERROR: CKPT_PATH is required."; exit 1; }
+
+args=(
+    --output_dir      "$OUTPUT_DIR"
+    --exp             "$EXP"
+    --data_dir        "$DATA_DIR"
+    --ckpt_path       "$CKPT_PATH"
+    --subset          "$SUBSET"
+    --batch_size      "$BATCH_SIZE"
+    --sampling_steps  "$SAMPLING_STEPS"
+    --solver          "$SOLVER"
+    --lin_poly_p      "$LIN_POLY_P"
+    --lin_poly_long_step "$LIN_POLY_LONG_STEP"
+)
+
+$ROTATE       && args+=(--rotate --rotate_time_frame "$ROTATE_TIME_FRAME")
+$SAVE_SAMPLES && args+=(--save_samples)
+$EVAL_ON_TRAIN && args+=(--eval_on_train)
+
+python3 eval_eth.py "${args[@]}"

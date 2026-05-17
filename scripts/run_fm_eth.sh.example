@@ -1,0 +1,53 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage:
+#   bash run_fm_eth.sh                                      # default settings
+#   bash run_fm_eth.sh --exp exp_02 --subset hotel          # override any variable
+#   bash run_fm_eth.sh --output_dir /tmp/out --batch_size 64
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+OUTPUT_DIR=/workspace/outputs
+DATA_DIR=/workspace/datasets/trajectory_pred/eth_ucy
+
+# ── Experiment ───────────────────────────────────────────────────────────────
+EXP=exp_01
+SUBSET=eth
+
+# ── Training ─────────────────────────────────────────────────────────────────
+BATCH_SIZE=32
+INIT_LR=1e-4
+CHECKPT_FREQ=1
+
+# ── Model ────────────────────────────────────────────────────────────────────
+ROTATE=true
+ROTATE_TIME_FRAME=6
+TIED_NOISE=true
+FM_IN_SCALING=true
+
+# ── Parse overrides (--KEY value) ────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+    key="${1^^}"          # normalize to upper-case
+    key="${key//-/_}"     # --some-key → SOME_KEY
+    key="${key#_}"        # strip leading underscore from --
+    printf -v "$key" '%s' "$2"
+    shift 2
+done
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+args=(
+    --output_dir   "$OUTPUT_DIR"
+    --exp          "$EXP"
+    --data_dir     "$DATA_DIR"
+    --subset       "$SUBSET"
+    --batch_size   "$BATCH_SIZE"
+    --init_lr      "$INIT_LR"
+    --checkpt_freq "$CHECKPT_FREQ"
+)
+
+$ROTATE        && args+=(--rotate --rotate_time_frame "$ROTATE_TIME_FRAME")
+$TIED_NOISE    && args+=(--tied_noise)
+$FM_IN_SCALING && args+=(--fm_in_scaling)
+
+python3 fm_eth.py "${args[@]}"

@@ -29,20 +29,22 @@ class Config:
     def create_dirs(self, tag_suffix=None, output_dir=None):
         # results dirs
         tag = self.tag if tag_suffix is None else self.tag + tag_suffix
-        if output_dir is not None:
-            if self.train_mode:
-                self.cfg_dir = '%s/%s/%s' % (os.path.abspath(output_dir), self.cfg_name, tag)
-            else:
-                self.cfg_dir = os.path.abspath(output_dir)
-        elif self.train_mode:
-            self.cfg_dir = '%s/%s/%s' % (self.results_root_dir, self.cfg_name, tag)
+        if self.train_mode:
+            root = os.path.abspath(output_dir) if output_dir is not None else self.results_root_dir
+            self.cfg_dir = '%s/%s/%s' % (root, self.cfg_name, tag)
         else:
             self.cfg_dir = os.path.dirname(self.cfg_path)
 
         self.model_dir = '%s/models' % self.cfg_dir
-        self.log_dir = '%s/log' % self.cfg_dir
-        self.sample_dir = '%s/samples' % self.cfg_dir
         self.model_path = os.path.join(self.model_dir, 'model_%04d.p')
+
+        # eval mode only: redirect log/sample output to output_dir if specified
+        if not self.train_mode and output_dir is not None:
+            out_root = os.path.abspath(output_dir)
+        else:
+            out_root = self.cfg_dir
+        self.log_dir = '%s/log' % out_root
+        self.sample_dir = '%s/samples' % out_root
 
         os.makedirs(self.sample_dir, exist_ok=True)
         os.makedirs(self.model_dir, exist_ok=True)

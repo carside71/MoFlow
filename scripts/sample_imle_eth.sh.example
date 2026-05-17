@@ -1,0 +1,61 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage:
+#   bash sample_imle_eth.sh                                      # default settings
+#   bash sample_imle_eth.sh --subset hotel --batch_size 16
+#   bash sample_imle_eth.sh --output_dir /tmp/out --save_samples false
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+OUTPUT_DIR=/workspace/outputs
+DATA_DIR=/workspace/datasets/trajectory_pred/eth_ucy
+CKPT_PATH=/workspace/outputs/cor_fm/exp_01_FM_S10_log_m-0.5_s1.5_dire_drop_emb_m0.5_k20.0_IS_TN_NN_A_REG_S_eth_rot_6_min_max_LR0.0001_WD0.01_CLS_1.0_BS32_EP150/models/checkpoint_best.pt
+
+# ── Experiment ───────────────────────────────────────────────────────────────
+EXP=exp_01
+SUBSET=eth
+
+# ── Training (must match run_imle_eth.sh exactly to resolve the checkpoint path) ──
+BATCH_SIZE=24
+INIT_LR=1e-4
+EPOCHS=50
+CHECKPT_FREQ=1
+NUM_TO_GEN=20
+LOAD_PRETRAINED=true
+
+# ── Output ───────────────────────────────────────────────────────────────────
+SAVE_SAMPLES=true
+
+# ── Model ────────────────────────────────────────────────────────────────────
+ROTATE=true
+ROTATE_TIME_FRAME=6
+
+# ── Parse overrides (--KEY value) ────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+    key="${1^^}"
+    key="${key//-/_}"
+    key="${key#_}"
+    printf -v "$key" '%s' "$2"
+    shift 2
+done
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+args=(
+    --output_dir   "$OUTPUT_DIR"
+    --exp          "$EXP"
+    --data_dir     "$DATA_DIR"
+    --subset       "$SUBSET"
+    --batch_size   "$BATCH_SIZE"
+    --init_lr      "$INIT_LR"
+    --epochs       "$EPOCHS"
+    --checkpt_freq "$CHECKPT_FREQ"
+    --num_to_gen   "$NUM_TO_GEN"
+    --eval
+)
+
+$ROTATE            && args+=(--rotate --rotate_time_frame "$ROTATE_TIME_FRAME")
+$LOAD_PRETRAINED   && args+=(--load_pretrained --ckpt_path "$CKPT_PATH")
+$SAVE_SAMPLES      && args+=(--save_samples)
+
+python3 imle_eth.py "${args[@]}"

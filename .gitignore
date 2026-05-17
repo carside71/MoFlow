@@ -204,3 +204,8 @@ cython_debug/
 
 # Additional ignores for this project
 run_container.sh
+run_fm_eth.sh
+run_imle_eth.sh
+sample_fm_eth.sh
+sample_imle_eth.sh
+stage_imle_data_eth.sh
