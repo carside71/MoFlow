@@ -1,0 +1,35 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage:
+#   bash visualize_fm_eth.sh
+#   bash visualize_fm_eth.sh --samples_dir /path/to/samples --max_scenes 4
+#   bash visualize_fm_eth.sh --scene_indices 0,3,5 --num_preds 20
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+SAMPLES_DIR=/workspace/outputs/cor_fm/exp_01_FM_S10_log_m-0.5_s1.5_dire_drop_emb_m0.5_k20.0_IS_TN_NN_A_REG_S_eth_rot_6_min_max_LR0.0001_WD0.01_CLS_1.0_BS32_EP150/samples
+SAMPLES_PKL=""
+OUTPUT_DIR=""
+
+# ── Options ──────────────────────────────────────────────────────────────────
+MAX_SCENES=8
+SCENE_INDICES=""
+NUM_PREDS=20
+
+# ── Parse overrides (--KEY value) ────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+    key="${1^^}"
+    key="${key//-/_}"
+    while [[ "$key" == _* ]]; do key="${key#_}"; done
+    printf -v "$key" '%s' "$2"
+    shift 2
+done
+
+args=(--max_scenes "$MAX_SCENES" --num_preds "$NUM_PREDS")
+[[ -n "$SAMPLES_PKL"   ]] && args+=(--samples_pkl   "$SAMPLES_PKL")
+[[ -n "$SAMPLES_DIR"   ]] && args+=(--samples_dir   "$SAMPLES_DIR")
+[[ -n "$OUTPUT_DIR"    ]] && args+=(--output_dir    "$OUTPUT_DIR")
+[[ -n "$SCENE_INDICES" ]] && args+=(--scene_indices "$SCENE_INDICES")
+
+cd "$(dirname "$0")/.."
+python3 -m tools.visualize_trajectories "${args[@]}"

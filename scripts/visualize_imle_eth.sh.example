@@ -1,0 +1,35 @@
+#!/bin/bash
+set -euo pipefail
+
+# Usage:
+#   bash visualize_imle_eth.sh
+#   bash visualize_imle_eth.sh --samples_dir /path/to/samples --max_scenes 4
+#   bash visualize_imle_eth.sh --scene_indices 0,3,5 --num_preds 20
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+SAMPLES_DIR=/workspace/outputs/imle/exp_01_IMLE_gen_set_M_20_load_enc_GT_0.00_Chamfer_1.00_REG_S_eth_rot_6_min_max_LR0.0001_WD0.01_BS24_EP50/samples
+SAMPLES_PKL=""
+OUTPUT_DIR=""
+
+# ── Options ──────────────────────────────────────────────────────────────────
+MAX_SCENES=8
+SCENE_INDICES=""
+NUM_PREDS=20
+
+# ── Parse overrides (--KEY value) ────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+    key="${1^^}"
+    key="${key//-/_}"
+    while [[ "$key" == _* ]]; do key="${key#_}"; done
+    printf -v "$key" '%s' "$2"
+    shift 2
+done
+
+args=(--max_scenes "$MAX_SCENES" --num_preds "$NUM_PREDS")
+[[ -n "$SAMPLES_PKL"   ]] && args+=(--samples_pkl   "$SAMPLES_PKL")
+[[ -n "$SAMPLES_DIR"   ]] && args+=(--samples_dir   "$SAMPLES_DIR")
+[[ -n "$OUTPUT_DIR"    ]] && args+=(--output_dir    "$OUTPUT_DIR")
+[[ -n "$SCENE_INDICES" ]] && args+=(--scene_indices "$SCENE_INDICES")
+
+cd "$(dirname "$0")/.."
+python3 -m tools.visualize_trajectories "${args[@]}"
